@@ -10,6 +10,11 @@ import (
 func main() {
 	cliCommands := getCliCommands()
 	scanner := bufio.NewScanner(os.Stdin)
+	config := &config{
+		Next: "https://pokeapi.co/api/v2/location-area?offset=0&limit=20",
+		Previous: nil,
+	}
+
 	for {
 		fmt.Print("Pokedex > ")
 		scanner.Scan()
@@ -17,7 +22,7 @@ func main() {
 		cleanedInput := cleanInput(input)
 		commandString := cleanedInput[0]
 		if command, ok := cliCommands[commandString]; ok {
-			command.callback()
+			command.callback(config)
 		} else {
 			fmt.Printf("unknown command: %s\n", commandString)
 		}

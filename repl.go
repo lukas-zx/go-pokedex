@@ -1,16 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"os"
 	"strings"
 )
-
-type cliCommand struct {
-	name        string
-	description string
-	callback    func() error
-}
 
 func getCliCommands() map[string]cliCommand {
 	return map[string]cliCommand{
@@ -24,6 +16,16 @@ func getCliCommands() map[string]cliCommand {
 			description: "Displays a help message",
 			callback:    commandHelp,
 		},
+		"map": {
+			name:        "map",
+			description: "Prints next 20 location areas",
+			callback:    commandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Prints previous 20 location areas",
+			callback:    commandMapb,
+		},
 	}
 }
 
@@ -34,18 +36,4 @@ func cleanInput(text string) []string {
 		res = append(res, strings.ToLower(strings.TrimSpace(word)))
 	}
 	return res
-}
-
-func commandExit() error {
-	fmt.Println("Closing the Pokedex... Goodbye!")
-	os.Exit(0)
-	return nil
-}
-
-func commandHelp() error {
-	fmt.Print("Welcome to the Pokedex!\nUsage:\n\n")
-	for _, command := range getCliCommands() {
-		fmt.Printf("%s: %s\n", command.name, command.description)
-	}
-	return nil
 }
