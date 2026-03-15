@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 
@@ -26,7 +27,7 @@ func commandHelp(config *config, params []string) error {
 
 func getResponseBody(config *config, url string) ([]byte, error) {
 	if data, ok := config.Cache.Get(url); ok {
-		fmt.Printf("using cached value for url %v", url)
+		// fmt.Printf("using cached value for url %v", url)
 		return data, nil
 	}
 
@@ -106,3 +107,30 @@ func commandExplore(config *config, params []string) error {
 
 	return nil
 }
+
+func commandCatch(config *config, params []string) error {
+	pokemon := params[0]
+	url := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%s/", pokemon)
+	body, err := getResponseBody(config, url)
+	if err != nil {
+		return err
+	}
+
+	pokeStruct := pokeapi.Pokemon{}
+	if err = json.Unmarshal(body, &pokeStruct); err != nil {
+		return fmt.Errorf("error unmarshalling response body: %v", err)
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokeStruct.Name)
+
+	catchChance := int(float64(pokeStruct.BaseExperience) * 0.3)
+  if rand.Intn(pokeStruct.BaseExperience) < catchChance {
+		config.Pokedex[pokeStruct.Name] = pokeStruct
+		fmt.Printf("%s was caught!\n", pokeStruct.Name)
+  } else {
+		fmt.Printf("%s escaped!\n", pokeStruct.Name)
+	}
+
+	return nil
+}
+
