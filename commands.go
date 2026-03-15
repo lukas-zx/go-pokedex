@@ -123,12 +123,35 @@ func commandCatch(config *config, params []string) error {
 
 	fmt.Printf("Throwing a Pokeball at %s...\n", pokeStruct.Name)
 
-	catchChance := int(float64(pokeStruct.BaseExperience) * 0.3)
+	catchChance := int(float64(pokeStruct.BaseExperience) * 0.8)
   if rand.Intn(pokeStruct.BaseExperience) < catchChance {
 		config.Pokedex[pokeStruct.Name] = pokeStruct
 		fmt.Printf("%s was caught!\n", pokeStruct.Name)
   } else {
 		fmt.Printf("%s escaped!\n", pokeStruct.Name)
+	}
+
+	return nil
+}
+
+func commandInspect(config *config, params []string) error {
+	name := params[0]
+	pokemon, ok := config.Pokedex[name]
+	if !ok {
+		fmt.Printf("%s has not been caught yet\n", name)
+		return nil
+	} 
+
+	fmt.Printf("Name: %s\n", pokemon.Name)
+	fmt.Printf("Heigth: %d\n", pokemon.Height)
+	fmt.Printf("Weight: %d\n", pokemon.Weight)
+	fmt.Println("Stats:")
+	for _, stat := range pokemon.Stats {
+		fmt.Printf("  -%s: %d\n", stat.Stat.Name, stat.BaseStat)
+	}
+	fmt.Println("Types:")
+	for _, pType := range pokemon.Types {
+		fmt.Printf("  - %s\n", pType.Type.Name)
 	}
 
 	return nil
