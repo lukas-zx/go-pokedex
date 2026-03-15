@@ -157,3 +157,11 @@ func commandInspect(config *config, params []string) error {
 	return nil
 }
 
+func commandPokedex(config *config, params []string) error {
+	fmt.Println("Your Pokedex:")
+  for name := range config.Pokedex {
+    fmt.Printf("  - %s\n", name)
+  }
+
+	return nil
+}
