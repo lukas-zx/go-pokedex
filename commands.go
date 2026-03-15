@@ -10,13 +10,13 @@ import (
 	"github.com/lukas-zx/go-pokedex/internal/pokeapi"
 )
 
-func commandExit(config *config) error {
+func commandExit(config *config, params []string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(config *config) error {
+func commandHelp(config *config, params []string) error {
 	fmt.Print("Welcome to the Pokedex!\nUsage:\n\n")
 	for _, command := range getCliCommands() {
 		fmt.Printf("%s: %s\n", command.name, command.description)
@@ -24,7 +24,12 @@ func commandHelp(config *config) error {
 	return nil
 }
 
-func getResponseBody(url string) ([]byte, error) {
+func getResponseBody(config *config, url string) ([]byte, error) {
+	if data, ok := config.Cache.Get(url); ok {
+		fmt.Printf("using cached value for url %v", url)
+		return data, nil
+	}
+
 	res, err := http.Get(url)
 	if err != nil {
 		return []byte{}, fmt.Errorf("error making http request to %v: %v", url, err)
@@ -40,11 +45,13 @@ func getResponseBody(url string) ([]byte, error) {
 		return []byte{}, fmt.Errorf("error reading response body: %v", err)
 	}
 
+	config.Cache.Add(url, body)
 	return body, nil
 }
 
+
 func mapHelper(config *config, url string) error {
-	body, err := getResponseBody(url)
+	body, err := getResponseBody(config, url)
 	if err != nil {
 		return err
 	}
@@ -62,13 +69,13 @@ func mapHelper(config *config, url string) error {
 
 	return nil
 }
-func commandMap(config *config) error {
+func commandMap(config *config, params []string) error {
 	if err := mapHelper(config, config.Next); err != nil {
 		return err
 	}
 	return nil
 }
-func commandMapb(config *config) error {
+func commandMapb(config *config, params []string) error {
 	if config.Previous == nil {
 		return fmt.Errorf("no previous data available")
 	}
@@ -76,6 +83,26 @@ func commandMapb(config *config) error {
 	if err := mapHelper(config, *config.Previous); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func commandExplore(config *config, params []string) error {
+	location := params[0]
+	url := fmt.Sprintf("https://pokeapi.co/api/v2/location-area/%s/", location)
+	body, err := getResponseBody(config, url)
+	if err != nil {
+		return err
+	}
+
+	locationArea := pokeapi.LocationArea{}
+	if err = json.Unmarshal(body, &locationArea); err != nil {
+		return fmt.Errorf("error unmarshalling response body: %v", err)
+	}
+
+	for _, entry := range locationArea.PokemonEncounters {
+    fmt.Println(entry.Pokemon.Name)
+  }
 
 	return nil
 }

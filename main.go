@@ -4,6 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"time"
+
+	"github.com/lukas-zx/go-pokedex/internal/pokecache"
 )
 
 
@@ -13,6 +16,7 @@ func main() {
 	config := &config{
 		Next: "https://pokeapi.co/api/v2/location-area?offset=0&limit=20",
 		Previous: nil,
+		Cache: pokecache.NewCache(5 * time.Second),
 	}
 
 	for {
@@ -21,8 +25,9 @@ func main() {
 		input := scanner.Text()
 		cleanedInput := cleanInput(input)
 		commandString := cleanedInput[0]
+		params := cleanedInput[1:]
 		if command, ok := cliCommands[commandString]; ok {
-			command.callback(config)
+			command.callback(config, params)
 		} else {
 			fmt.Printf("unknown command: %s\n", commandString)
 		}
